@@ -1,27 +1,29 @@
 #!/usr/bin/env bash
 
-check_factor() {
-    local num1=$1
-    local num2=$2
-    local result
+factorize() {
+    local n=$1
+    local p=2
+    local q
+    local result=""
 
-    if [ $num2 -gt $num1 ]; then
-        local temp=$num1
-        num1=$num2
-        num2=$temp
-    fi
+    while (( p * p <= n )); do
+        if (( n % p == 0 )); then
+            q=$(( n / p ))
+            result+=" $p*$q"
+        fi
+        (( p++ ))
+    done
 
-    echo "$num1 * $num2"
+    echo "$result"
 }
 
 if [ $# -ne 1 ]; then
-    echo 'Usage: factors <file>'
+    echo "Usage: factors <file>"
     exit 1
 fi
 
-while read -r num; do
-    result=$(factor "$num" | tr -d '[:alpha:]')
-    factors=($result)
-    check_factor "${factors[@]}"
+while read -r number; do
+    result=$(factorize "$number")
+    echo "$result"
 done < "$1"
 
