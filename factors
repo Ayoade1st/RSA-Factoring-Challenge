@@ -1,29 +1,45 @@
 #!/usr/bin/env bash
 
-factorize() {
-    local n=$1
-    local p=2
-    local q
-    local result=""
+# Function to check if first number is a factor of the second
+check_factor() {
+  # Use named arguments or array for clarity
+  local divisor="$1"
+  local dividend="$2"
 
-    while (( p * p <= n )); do
-        if (( n % p == 0 )); then
-            q=$(( n / p ))
-            result+=" $p*$q"
-        fi
-        (( p++ ))
-    done
+  # Calculate denominator once before loop
+  local product=$(echo "$divisor" '*' "$dividend" | bc)
 
-    echo "$result"
+  # Loop through factor output (use loop instead of tr)
+  while read -r factor; do
+    # Compare factor with calculated product
+    if [[ $factor -eq $product ]]; then
+      echo "true"
+      return 0
+    fi
+  done
+
+  echo "false"
+  return 1
 }
 
 if [ $# -ne 1 ]; then
-    echo "Usage: factors <file>"
-    exit 1
+  echo "Usage: factors <file>"
+  exit 1
 fi
 
-while read -r number; do
-    result=$(factorize "$number")
-    echo "$result"
-done < "$1"
+# Declare loop variables outside loop for proper usage
+count=0
+num2=1
 
+# Use while loop to read lines from file
+while read -r line; do
+  # Extract desired values from factor output (adjust based on actual output)
+  factor=$(echo "$line" | sed 's/^.*: //')
+
+  # Call check_factor function with extracted factor and line number
+  check_factor "$factor" "$line"
+
+  # Update count and num2 for next iteration
+  count=$((count + 1))
+  num2=$(echo "$num2" '*' "$factor" | bc)
+done < "$1"
