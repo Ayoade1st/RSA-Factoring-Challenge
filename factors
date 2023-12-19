@@ -1,45 +1,25 @@
 #!/usr/bin/env bash
 
-# Function to check if first number is a factor of the second
-check_factor() {
-  # Use named arguments or array for clarity
-  local divisor="$1"
-  local dividend="$2"
-
-  # Calculate denominator once before loop
-  local product=$(echo "$divisor" '*' "$dividend" | bc)
-
-  # Loop through factor output (use loop instead of tr)
-  while read -r factor; do
-    # Compare factor with calculated product
-    if [[ $factor -eq $product ]]; then
-      echo "true"
-      return 0
-    fi
-  done
-
-  echo "false"
-  return 1
-}
+factors_file="$1"
+count=0
+num2=1
+args=("$@")
 
 if [ $# -ne 1 ]; then
-  echo "Usage: factors <file>"
+  echo 'Usage: factors <file>'
   exit 1
 fi
 
-# Declare loop variables outside loop for proper usage
-count=0
-num2=1
+while read -r factor; do
+  if [[ $factor -gt $num2 ]]; then
+    num1=$num2
+    num2=$factor
+  fi
+  ((count++))
+done < "$factors_file"
 
-# Use while loop to read lines from file
-while read -r line; do
-  # Extract desired values from factor output (adjust based on actual output)
-  factor=$(echo "$line" | sed 's/^.*: //')
-
-  # Call check_factor function with extracted factor and line number
-  check_factor "$factor" "$line"
-
-  # Update count and num2 for next iteration
-  count=$((count + 1))
-  num2=$(echo "$num2" '*' "$factor" | bc)
-done < "$1"
+if ((count == 0)); then
+  echo "No factors greater than 1 found in $factors_file"
+else
+  echo "$num2*$num1"
+fi
